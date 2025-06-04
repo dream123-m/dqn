@@ -5,6 +5,8 @@ import time
 import json
 import os
 from datetime import datetime
+import torch
+import torch.nn as nn
 
 
 class DQNTrainer:
@@ -419,8 +421,8 @@ def create_optimized_config():
     config = {
         'environment': {
             'w1': 0.4,  # 信息价值权重
-            'w2': 1.0,  # 广播代价权重
-            'w3': 0.3,  # 共享率激励权重
+            'w2': 0.4,  # 广播代价权重
+            'w3': 0.4,  # 共享率激励权重
             'sharing_threshold': 0.95,
             'max_distance': 150.0
         },

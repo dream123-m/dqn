@@ -15,8 +15,8 @@ from datetime import datetime
 # 导入自定义模块
 from data_loader import MATLABDataLoader
 from cav_broadcast_env import CAVBroadcastEnv
-from dqn_agent import DQNAgent
-from dqn_trainer import DQNTrainer, create_training_config
+from dqn_agent import MaskedDQNAgent
+from dqn_trainer import DQNTrainer, create_optimized_config
 
 
 def setup_matplotlib():
@@ -55,11 +55,12 @@ def create_environment_and_agent(loader, config):
     print("步骤2: 环境与智能体创建")
     print("=" * 60)
 
-    # 创建环境
+    # 创建环境，包含 w3 参数
     env = CAVBroadcastEnv(
         data_loader=loader,
         w1=config['environment']['w1'],
         w2=config['environment']['w2'],
+        w3=config['environment']['w3'],
         sharing_threshold=config['environment']['sharing_threshold'],
         max_distance=config['environment']['max_distance']
     )
@@ -68,7 +69,7 @@ def create_environment_and_agent(loader, config):
     print(f"   - CAV数量: {env.num_cavs}")
     print(f"   - 最大目标数/CAV: {env.max_targets_per_cav}")
     print(f"   - 共享率阈值: {env.sharing_threshold}")
-    print(f"   - 权重 w1={env.w1}, w2={env.w2}")
+    print(f"   - 权重 w1={env.w1}, w2={env.w2}, w3={env.w3}")
 
     # 获取状态和动作空间维度
     state_dim = env.observation_space.shape[0]
@@ -77,8 +78,8 @@ def create_environment_and_agent(loader, config):
     print(f"   - 状态空间维度: {state_dim}")
     print(f"   - 动作空间维度: {action_dim}")
 
-    # 创建智能体
-    agent = DQNAgent(
+    # 创建智能体，使用 MaskedDQNAgent
+    agent = MaskedDQNAgent(
         state_dim=state_dim,
         action_dim=action_dim,
         lr=config['agent']['lr'],
@@ -92,7 +93,6 @@ def create_environment_and_agent(loader, config):
     )
 
     print(f"✅ DQN智能体创建成功!")
-    print(f"   - 网络结构: {config['agent']['hidden_dims']}")
     print(f"   - 学习率: {config['agent']['lr']}")
     print(f"   - 缓冲区大小: {config['agent']['buffer_size']}")
 
@@ -198,7 +198,7 @@ def main():
     setup_matplotlib()
 
     # 配置参数
-    config = create_training_config()
+    config = create_optimized_config()
 
     # 文件路径 - 请根据实际情况修改
     data_file_path = "vehicles_density50_penetration0.5.mat"
@@ -249,7 +249,7 @@ def quick_test():
     """快速测试(使用较少的训练轮数)"""
     print("🧪 快速测试模式")
 
-    config = create_training_config()
+    config = create_optimized_config()
     # 减少训练轮数用于测试
     config['training']['max_episodes'] = 100
     config['training']['eval_frequency'] = 20
